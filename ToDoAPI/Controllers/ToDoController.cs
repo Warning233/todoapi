@@ -29,10 +29,8 @@ public class ToDoController : ControllerBase
     {
         var item = await _context.ToDoItems.FindAsync(id);
 
-        if (item == null)
-        {
-            return NotFound();
-        }
+        if (item == null) return NotFound();
+        
         return item;
     }
     
@@ -42,6 +40,7 @@ public class ToDoController : ControllerBase
     {
         _context.ToDoItems.Add(item);
         await _context.SaveChangesAsync();
+        
         return CreatedAtAction(nameof(GetToDoItem), new { id = item.Id }, item);
     }
     
@@ -50,8 +49,10 @@ public class ToDoController : ControllerBase
     public async Task<IActionResult> UpdateToDoItem(int id, ToDoItem item)
     {
         if (id != item.Id) return BadRequest();
+        
         _context.Entry(item).State = EntityState.Modified;
         await _context.SaveChangesAsync();
+        
         return NoContent();
     }
     
@@ -60,9 +61,12 @@ public class ToDoController : ControllerBase
     public async Task<IActionResult> DeleteToDoItem(int id)
     {
         var item = await _context.ToDoItems.FindAsync(id);
+        
         if (item == null) return NotFound();
+        
         _context.ToDoItems.Remove(item);
         await _context.SaveChangesAsync();
+        
         return NoContent();
     }
 }
