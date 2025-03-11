@@ -1,0 +1,42 @@
+@using Models
+
+<div class="modal" tabindex="-1" style="display: block" @onclick="Close">
+    <div class="modal-dialog" @onclick:stopPropagation>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Title</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="Item" OnValidSubmit="Save">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <InputText id="title" class="form-control" @bind-Value="Item.Title" />
+                        <ValidationMessage For="() => Item.Title" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <InputTextArea id="description" class="form-control" @bind-Value="Item.Description" />
+                        <ValidationMessage For="() => Item.Description" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ToDoItem Item { get; set; }
+    [Parameter] public string Title { get; set; } = "Add New Task";
+    [Parameter] public EventCallback OnSave { get; set; }
+
+    private void Close() => OnSave.InvokeAsync();
+    private Task Save() => OnSave.InvokeAsync();
+}

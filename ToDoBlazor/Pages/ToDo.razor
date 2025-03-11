@@ -1,0 +1,123 @@
+@page "/"
+@using ToDoBlazor.Models
+@using ToDoBlazor.Services
+@using ToDoBlazor.Components
+@inject ToDoService ToDoService
+
+<h1>ToDo List</h1>
+
+@if (items == null)
+{
+    <p>Loading...</p>
+}
+else if (errorMessage != null)
+{
+    <p class="text-danger">@errorMessage</p>
+}
+else
+{
+    <div class="container">
+        <button @onclick="ShowPopup" class="btn btn-primary">Add Item</button>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.Description</td>
+                    <td>@(item.IsCompleted ? "Completed" : "In progress...")</td>
+                    <td>
+                        <button class="btn btn-success btn-sm" 
+                                @onclick="() => ToggleItem(item)">
+                            @(item.IsCompleted ? "Undo" : "Complete")
+                        </button>
+                        <button class="btn btn-danger btn-sm" 
+                                @onclick="() => DeleteItem(item.Id)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<!-- Popup -->
+@if (isPopupShown)
+{
+    <AddTaskModal Item="newItem" OnSave="AddItem" />
+}
+
+@code {
+    private ToDoItem[] items;
+    private bool isPopupShown;
+    private ToDoItem newItem = new ToDoItem();
+    private bool isLoading;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItems();
+    }
+
+    private async Task LoadItems()
+    {
+        try
+        {
+            isLoading = true;
+            items = await ToDoService.GetItemsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading items: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowPopup()
+    {
+        newItem = new ToDoItem();
+        isPopupShown = true;
+    }
+
+    private void ClosePopup()
+    {
+        isPopupShown = false;
+    }
+
+    private async Task AddItem()
+    {
+        if (!string.IsNullOrWhiteSpace(newItem.Title))
+        {
+            await ToDoService.AddItemAsync(newItem);
+            isPopupShown = false;
+            await LoadItems();
+        }
+    }
+
+    private async Task ToggleItem(ToDoItem item)
+    {
+        item.IsCompleted = !item.IsCompleted;
+        await ToDoService.UpdateItemAsync(item);
+        await LoadItems();
+    }
+
+    private async Task DeleteItem(int id)
+    {
+        await ToDoService.DeleteItemAsync(id);
+        await LoadItems();
+    }
+}
